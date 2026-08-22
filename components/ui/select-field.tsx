@@ -1,20 +1,21 @@
 "use client";
 
-import { useId, type InputHTMLAttributes } from "react";
+import { useId, type SelectHTMLAttributes } from "react";
 
-interface FormFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+interface SelectFieldProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label: string;
   name: string;
   error?: string;
 }
 
-export function FormField({
+export function SelectField({
   label,
   name,
   error,
   className = "",
+  children,
   ...props
-}: FormFieldProps) {
+}: SelectFieldProps) {
   const id = useId();
 
   return (
@@ -25,7 +26,7 @@ export function FormField({
       >
         {label}
       </label>
-      <input
+      <select
         id={id}
         name={name}
         aria-invalid={error ? true : undefined}
@@ -34,7 +35,9 @@ export function FormField({
           error ? "border-red-500" : "border-zinc-300 dark:border-zinc-700"
         } ${className}`}
         {...props}
-      />
+      >
+        {children}
+      </select>
       {error && (
         <p
           id={`${id}-error`}

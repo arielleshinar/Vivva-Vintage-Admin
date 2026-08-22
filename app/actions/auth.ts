@@ -38,9 +38,9 @@ export async function signup(
   }
 
   if (!data.user || !data.session) {
+    console.error("Signup succeeded but no session returned — check Supabase 'Confirm email' setting");
     return {
-      error:
-        "Account created, but couldn't sign you in automatically. If email confirmation is enabled in the Supabase project, disable it (Authentication → Providers → Email → Confirm email) — this MVP expects plain email/password signup with no confirmation step.",
+      error: "Something went wrong setting up your account. Please try again or contact support.",
     };
   }
 

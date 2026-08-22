@@ -18,7 +18,7 @@ export default function LoginPage() {
           Log in
         </h1>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          Welcome back to Vivva Vintage.
+          Welcome back to Vivva Admin.
         </p>
 
         <form action={formAction} className="mt-8 flex flex-col gap-4">
