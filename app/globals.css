@@ -24,3 +24,17 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .receipt-card,
+  .receipt-card * {
+    color: #000 !important;
+    background: #fff !important;
+    border-color: #d4d4d8 !important;
+    box-shadow: none !important;
+  }
+}
