@@ -26,6 +26,10 @@ export interface DashboardStats {
 
 const UNCATEGORIZED_KEY = "uncategorized";
 
+export function calculateMargin(price: number, cost: number): number {
+  return price - cost;
+}
+
 function summarizeItems(items: DashboardItem[]) {
   const totalItems = items.length;
   const soldItems = items.filter((item) => item.status === "sold").length;
@@ -34,7 +38,7 @@ function summarizeItems(items: DashboardItem[]) {
 
   const marginPercents = items
     .filter((item) => item.price > 0)
-    .map((item) => ((item.price - item.cost) / item.price) * 100);
+    .map((item) => (calculateMargin(item.price, item.cost) / item.price) * 100);
   const avgMarginPercent =
     marginPercents.length === 0
       ? null
