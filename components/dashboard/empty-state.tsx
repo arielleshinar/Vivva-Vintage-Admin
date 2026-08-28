@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { buttonStyles } from "@/components/ui/button";
 
+/**
+ * Shown on the dashboard instead of the stats when the business has zero
+ * items. This is the first "empty state" in the app — the same
+ * card-with-a-call-to-action shape gets reused (with different wording)
+ * on the inventory and receipts pages too.
+ */
 export function EmptyState() {
   return (
     <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-zinc-300 px-6 py-16 text-center dark:border-zinc-700">

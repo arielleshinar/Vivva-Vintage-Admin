@@ -15,6 +15,11 @@ interface CategoryManagerProps {
   categories: { id: string; name: string }[];
 }
 
+/**
+ * The "Categories" box at the top of the inventory page: shows every
+ * existing category as a small pill (via CategoryChip below) and a form
+ * to add a new one.
+ */
 export function CategoryManager({ categories }: CategoryManagerProps) {
   const [state, formAction, pending] = useActionState(
     createCategory,
@@ -61,6 +66,11 @@ export function CategoryManager({ categories }: CategoryManagerProps) {
   );
 }
 
+/**
+ * One category pill with an "×" delete button. Each chip has its own
+ * `useActionState`, which means each one tracks its own pending/error
+ * state independently — deleting one category doesn't affect the others.
+ */
 function CategoryChip({ id, name }: { id: string; name: string }) {
   const [state, formAction, pending] = useActionState(
     deleteCategory,
@@ -74,6 +84,9 @@ function CategoryChip({ id, name }: { id: string; name: string }) {
         <form
           action={formAction}
           onSubmit={(event) => {
+            // A plain browser confirm() dialog — if the user clicks
+            // "Cancel", preventDefault() stops the form from actually
+            // submitting, so nothing gets deleted.
             if (
               !confirm(
                 `Delete category "${name}"? Items in this category will become uncategorized.`

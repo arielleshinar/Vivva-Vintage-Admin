@@ -7,6 +7,15 @@ import { FormField } from "@/components/ui/form-field";
 
 const initialState: ReportActionState = {};
 
+/**
+ * Takes the finished CSV text and actually saves it to the visitor's
+ * computer. There's no server endpoint involved in this step — a "Blob"
+ * is just the file's contents held in browser memory, `URL.createObjectURL`
+ * gives it a temporary local address, and clicking an invisible <a
+ * download> link is the standard trick for triggering a save-file dialog
+ * from JavaScript. We clean up both the link element and the temporary
+ * URL right after, since neither is needed once the download has started.
+ */
 function downloadCsv(csv: string, filename: string) {
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
@@ -19,6 +28,20 @@ function downloadCsv(csv: string, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+/**
+ * The date-range form on the reports page. Same `useActionState` pattern
+ * as every other form in the app, but with one extra piece: since a
+ * Server Action can only *return* data (it can't directly tell the
+ * browser to download a file), this component watches the returned state
+ * for a successful CSV and triggers the download itself.
+ *
+ * `lastHandledStateRef` exists to make sure we only download once per
+ * submission. `useActionState` gives us a brand-new `state` object every
+ * time the action finishes (even if you submit the exact same dates
+ * twice in a row), so comparing "is this the same state object we already
+ * handled?" correctly triggers a fresh download each time, without ever
+ * double-downloading the same result from an unrelated re-render.
+ */
 export function ReportForm() {
   const [state, formAction, pending] = useActionState(
     exportReport,

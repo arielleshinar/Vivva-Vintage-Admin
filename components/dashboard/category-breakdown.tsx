@@ -4,6 +4,13 @@ interface CategoryBreakdownProps {
   categories: CategoryStats[];
 }
 
+/**
+ * The table below the stat cards, breaking the same kind of numbers down
+ * one row per category (e.g. "Dresses: 100% sell-through") instead of one
+ * total for the whole shop. Read-only — this table has no buttons, since
+ * you can't edit categories from the dashboard (that happens on the
+ * inventory page).
+ */
 export function CategoryBreakdown({ categories }: CategoryBreakdownProps) {
   return (
     <div className="mt-8 overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">

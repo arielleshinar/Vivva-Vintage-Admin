@@ -8,6 +8,12 @@ import { ItemsTable } from "@/components/inventory/items-table";
 import { EmptyState } from "@/components/inventory/empty-state";
 import type { ItemRowItem } from "@/components/inventory/item-row";
 
+/**
+ * The /inventory page. Same overall shape as the dashboard page: confirm
+ * login → look up the business → fetch data → render. The main difference
+ * is this page needs both categories and items, and has to join them
+ * together itself (so each item's row can show its category's name).
+ */
 export default async function InventoryPage() {
   const supabase = await createClient();
 
@@ -61,6 +67,13 @@ export default async function InventoryPage() {
   }
 
   const categoryList = categories ?? [];
+  // A quick lookup table: category id → its name, so we can attach the
+  // right category name to each item below without a separate database
+  // query per item. We do this join by hand instead of asking Supabase to
+  // embed it directly (`.select("...,categories(name)")`) because without
+  // generated types (see lib/types/database.ts), that embedded query
+  // type-checked as an array of names instead of one — this Map-based
+  // version sidesteps that entirely.
   const categoryNamesById = new Map(
     categoryList.map((category) => [category.id, category.name])
   );
@@ -91,6 +104,7 @@ export default async function InventoryPage() {
   );
 }
 
+/** Shared page wrapper — same idea as the dashboard's PageShell, just labeled "Inventory". */
 function PageShell({
   businessName,
   children,

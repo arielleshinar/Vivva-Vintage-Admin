@@ -7,6 +7,17 @@ import { EmptyState } from "@/components/dashboard/empty-state";
 import { StatsSummary } from "@/components/dashboard/stats-summary";
 import { CategoryBreakdown } from "@/components/dashboard/category-breakdown";
 
+/**
+ * The /dashboard page. This is a Server Component — it's an `async`
+ * function that runs entirely on the server, fetches its own data
+ * directly from Supabase, and sends the finished HTML to the browser (no
+ * loading spinner, no separate API call from the client).
+ *
+ * The steps: confirm someone's logged in → look up their business →
+ * fetch that business's categories, items, and receipts → crunch the
+ * numbers with computeDashboardStats() → render either an empty state or
+ * the real stats.
+ */
 export default async function DashboardPage() {
   const supabase = await createClient();
 
@@ -33,18 +44,26 @@ export default async function DashboardPage() {
     );
   }
 
+  // Fetch everything the stats calculation needs, in parallel (rather than
+  // one after another) since none of these three queries depend on each
+  // other's results.
   const [
     { data: categories, error: categoriesError },
     { data: items, error: itemsError },
+    { data: receipts, error: receiptsError },
   ] = await Promise.all([
     supabase.from("categories").select("id, name").eq("business_id", business.id),
     supabase
       .from("items")
-      .select("cost, price, status, category_id")
+      .select("id, cost, status, category_id")
+      .eq("business_id", business.id),
+    supabase
+      .from("receipts")
+      .select("item_id, sale_price")
       .eq("business_id", business.id),
   ]);
 
-  if (categoriesError || itemsError) {
+  if (categoriesError || itemsError || receiptsError) {
     return (
       <PageShell businessName={business.name}>
         <p className="mt-8 text-sm text-red-600 dark:text-red-400">
@@ -54,12 +73,20 @@ export default async function DashboardPage() {
     );
   }
 
+  // A quick lookup table: item id → what it actually sold for. Only sold
+  // items will have an entry here; everything else falls back to `null`
+  // below, which computeDashboardStats() knows means "not sold yet, don't
+  // count it in the margin average."
+  const salePriceByItemId = new Map(
+    (receipts ?? []).map((receipt) => [receipt.item_id, receipt.sale_price])
+  );
+
   const stats = computeDashboardStats(
     (items ?? []).map((item) => ({
       categoryId: item.category_id,
       cost: item.cost,
-      price: item.price,
       status: item.status,
+      salePrice: salePriceByItemId.get(item.id) ?? null,
     })),
     categories ?? []
   );
@@ -83,6 +110,11 @@ export default async function DashboardPage() {
   );
 }
 
+/**
+ * Shared page wrapper: the "Dashboard" heading, the business name
+ * underneath it, and consistent padding/background — so every possible
+ * state above (loading, error, empty, real data) looks like the same page.
+ */
 function PageShell({
   businessName,
   children,

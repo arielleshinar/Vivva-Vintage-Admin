@@ -6,6 +6,13 @@ import { getCurrentBusiness } from "@/lib/supabase/get-business";
 import { formatReceiptDate } from "@/lib/receipts/format";
 import { EmptyState } from "@/components/receipts/empty-state";
 
+/**
+ * The /receipts page — a read-only list of every past sale, most recent
+ * first. Unlike the dashboard and inventory pages, this one never writes
+ * anything: receipts are only ever created by markItemSold() in
+ * app/actions/inventory.ts, so there's no matching app/actions/receipts.ts
+ * file.
+ */
 export default async function ReceiptsPage() {
   const supabase = await createClient();
 
@@ -48,6 +55,9 @@ export default async function ReceiptsPage() {
     );
   }
 
+  // Each receipt only stores an item_id, not the item's name — so we look
+  // up the names for every item referenced by these receipts in one extra
+  // query (deduplicated via `new Set`), rather than one query per receipt.
   const itemIds = [...new Set((receipts ?? []).map((r) => r.item_id))];
   const itemNamesById = new Map<string, string>();
 
@@ -79,6 +89,10 @@ export default async function ReceiptsPage() {
               <span>Date</span>
             </div>
             <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
+              {/* Each row is itself a full <Link> (rather than a <tr> with
+                  a click handler), so the whole row is clickable and it
+                  works like a normal link — middle-click to open in a new
+                  tab, etc. */}
               {receiptList.map((receipt) => (
                 <Link
                   key={receipt.id}
@@ -107,6 +121,7 @@ export default async function ReceiptsPage() {
   );
 }
 
+/** Shared page wrapper — same idea as the other pages' PageShell, labeled "Receipts". */
 function PageShell({
   businessName,
   children,

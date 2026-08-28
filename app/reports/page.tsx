@@ -4,6 +4,13 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentBusiness } from "@/lib/supabase/get-business";
 import { ReportForm } from "@/components/reports/report-form";
 
+/**
+ * The /reports page — the simplest page in the app. It doesn't fetch or
+ * display any data of its own; it just confirms the visitor is logged in
+ * and has a business, then renders the date-range form. All the actual
+ * work (querying sales, building the CSV) happens in the ReportForm →
+ * exportReport() Server Action, triggered when the form is submitted.
+ */
 export default async function ReportsPage() {
   const supabase = await createClient();
 
@@ -43,6 +50,7 @@ export default async function ReportsPage() {
   );
 }
 
+/** Shared page wrapper — same idea as the other pages' PageShell, labeled "Reports". */
 function PageShell({
   businessName,
   children,

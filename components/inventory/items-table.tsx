@@ -5,6 +5,11 @@ interface ItemsTableProps {
   categories: { id: string; name: string }[];
 }
 
+/**
+ * The table wrapper: renders the column headers once, then one ItemRow
+ * per item. All the actual interactivity (edit, sell, delete) lives
+ * inside ItemRow — this component just lays them out.
+ */
 export function ItemsTable({ items, categories }: ItemsTableProps) {
   return (
     <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">

@@ -1,3 +1,9 @@
+/**
+ * Shown instead of the items table when the business has zero items.
+ * Simpler than the dashboard's empty state (components/dashboard/empty-state.tsx)
+ * — no button needed here, since the "add item" form is already sitting
+ * right above this on the same page.
+ */
 export function EmptyState() {
   return (
     <div className="rounded-2xl border border-dashed border-zinc-300 px-6 py-12 text-center dark:border-zinc-700">

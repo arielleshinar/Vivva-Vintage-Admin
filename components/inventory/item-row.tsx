@@ -14,6 +14,7 @@ import type { ItemStatus } from "@/lib/types/database";
 
 const initialState: InventoryActionState = {};
 
+/** One item's worth of info needed to render its row — a trimmed-down, display-ready shape. */
 export interface ItemRowItem {
   id: string;
   name: string;
@@ -29,6 +30,13 @@ interface ItemRowProps {
   categories: { id: string; name: string }[];
 }
 
+/**
+ * One row in the inventory table. This is the most involved component in
+ * the app: it keeps track of a local "mode" — `"view"`, `"edit"`, or
+ * `"sell"` — and renders a completely different sub-component depending
+ * on which one it's in. Clicking "Edit" or "Mark sold" doesn't navigate
+ * anywhere; it just swaps this row's contents in place.
+ */
 export function ItemRow({ item, categories }: ItemRowProps) {
   const [mode, setMode] = useState<"view" | "edit" | "sell">("view");
 
@@ -55,6 +63,12 @@ export function ItemRow({ item, categories }: ItemRowProps) {
   );
 }
 
+/**
+ * The normal, read-only version of a row: name, category, cost, price,
+ * margin, status, and the Mark sold / Edit / Delete buttons. Also where
+ * the "loss item" flag lives — if price is below cost, the margin shows
+ * in red instead of being silently wrong-looking.
+ */
 function ViewItemRow({
   item,
   onEdit,
@@ -109,6 +123,7 @@ function ViewItemRow({
       </td>
       <td className="px-4 py-3">
         <div className="flex flex-wrap gap-2">
+          {/* "Mark sold" only shows for items still in stock — you can't sell something twice. */}
           {item.status === "in_stock" && (
             <button
               type="button"
@@ -153,6 +168,14 @@ function ViewItemRow({
   );
 }
 
+/**
+ * Replaces the row with an inline edit form (name/cost/price/category,
+ * pre-filled with the item's current values) when "Edit" is clicked.
+ *
+ * The `useEffect` below watches for the update succeeding and calls
+ * `onDone()` to flip the parent `ItemRow` back to view mode — without it,
+ * this form would stay open forever after a successful save.
+ */
 function EditItemForm({
   item,
   categories,
@@ -250,6 +273,12 @@ function EditItemForm({
   );
 }
 
+/**
+ * Replaces the row with the "confirm sale" mini-form when "Mark sold" is
+ * clicked — a sale price input (pre-filled with the listed price, in case
+ * it sold for a different amount) and a confirm button. Same
+ * success-detecting `useEffect` pattern as EditItemForm above.
+ */
 function SellItemForm({
   item,
   onDone,

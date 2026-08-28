@@ -6,8 +6,20 @@ import { signup, type AuthActionState } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 
+// The starting state before the form has ever been submitted — no errors
+// yet, because nothing has happened yet.
 const initialState: AuthActionState = {};
 
+/**
+ * The /signup page. This is a Client Component (note "use client" above)
+ * because it needs `useActionState`, a React hook that only works in the
+ * browser — it wires the <form> up to the `signup` Server Action and gives
+ * us back three things:
+ *   - `state`: whatever the action last returned (errors, if any)
+ *   - `formAction`: pass this straight to the <form>'s `action` prop
+ *   - `pending`: true while the action is running, so we can disable the
+ *     button and avoid double-submits
+ */
 export default function SignupPage() {
   const [state, formAction, pending] = useActionState(signup, initialState);
 

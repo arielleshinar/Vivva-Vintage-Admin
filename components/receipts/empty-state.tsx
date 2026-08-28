@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { buttonStyles } from "@/components/ui/button";
 
+/**
+ * Shown on the receipts page when there aren't any yet. Same
+ * card-with-a-button shape as the dashboard's and inventory's empty
+ * states — this one points to /inventory, since that's where a receipt
+ * actually gets created (by marking an item sold).
+ */
 export function EmptyState() {
   return (
     <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-zinc-300 px-6 py-16 text-center dark:border-zinc-700">

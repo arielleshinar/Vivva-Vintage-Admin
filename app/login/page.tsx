@@ -8,6 +8,11 @@ import { FormField } from "@/components/ui/form-field";
 
 const initialState: AuthActionState = {};
 
+/**
+ * The /login page. Same shape as app/signup/page.tsx — a Client Component
+ * using `useActionState` to wire this form up to the `login` Server
+ * Action — just with two fields instead of three.
+ */
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState(login, initialState);
 

@@ -2,12 +2,30 @@
 
 import { useId, type InputHTMLAttributes } from "react";
 
+// A labeled text input with a built-in space for a validation error message
+// underneath. Used by every form in the app (signup, login, add item, edit
+// item, dates on the reports page, etc.) so they all look and behave the
+// same way.
+
 interface FormFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   name: string;
   error?: string;
 }
 
+/**
+ * Renders a <label> + <input> pair, plus the error text below it when
+ * `error` is set.
+ *
+ * Uses React's `useId()` to generate the input's `id` instead of reusing
+ * the `name` prop directly. This matters because the same field `name`
+ * (like "name" or "cost") can appear more than once on a page at the same
+ * time — e.g. the "add item" form and an "edit item" row both have a field
+ * called "name". If we used `name` as the DOM `id` too, both inputs would
+ * share one id, which is invalid HTML and breaks the label's click-to-focus
+ * behavior. `useId()` guarantees every instance of this component gets its
+ * own unique id, no matter how many are on the page at once.
+ */
 export function FormField({
   label,
   name,

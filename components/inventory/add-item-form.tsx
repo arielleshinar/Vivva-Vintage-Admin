@@ -12,6 +12,12 @@ interface AddItemFormProps {
   categories: { id: string; name: string }[];
 }
 
+/**
+ * The "quick add" form always visible above the inventory table. Same
+ * `useActionState` pattern as the signup/login forms — name, cost, price,
+ * and an optional category dropdown, wired to the `createItem` Server
+ * Action.
+ */
 export function AddItemForm({ categories }: AddItemFormProps) {
   const [state, formAction, pending] = useActionState(
     createItem,
