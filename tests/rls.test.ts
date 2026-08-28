@@ -1,5 +1,6 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
+import { getOrCreateTestUser } from "./helpers/test-account";
 
 // Integration tests proving Row Level Security actually blocks cross-tenant
 // access at the database level — not just that our app code happens to
@@ -12,9 +13,6 @@ import { beforeAll, describe, expect, it } from "vitest";
 // as "User B" — a completely unrelated business — and expects it to be
 // invisible/untouchable, exactly as if it didn't exist.
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
 const USER_A = {
   email: "ariellesc+rlstesta@gmail.com",
   password: "RlsTestPassword123",
@@ -25,68 +23,6 @@ const USER_B = {
   password: "RlsTestPassword123",
   businessName: "RLS Test Business B",
 };
-
-/**
- * Signs a test user in, creating both the auth account and its business
- * the first time this ever runs, and just signing in on every run after —
- * so repeated test runs reuse the same two accounts instead of piling new
- * ones up in the Supabase project.
- */
-async function getOrCreateTestUser(user: typeof USER_A) {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  const signInResult = await supabase.auth.signInWithPassword({
-    email: user.email,
-    password: user.password,
-  });
-
-  // Sign-in fails the very first time this ever runs (the account doesn't
-  // exist yet) — fall back to creating it. Every run after this, sign-in
-  // succeeds and signUp() never gets called.
-  const authResult = signInResult.error
-    ? await supabase.auth.signUp({ email: user.email, password: user.password })
-    : signInResult;
-
-  if (authResult.error || !authResult.data.user || !authResult.data.session) {
-    throw new Error(
-      `Could not sign in or create RLS test user ${user.email}: ${
-        authResult.error?.message ?? "no session returned — is 'Confirm email' still enabled in Supabase?"
-      }`
-    );
-  }
-
-  const userId = authResult.data.user.id;
-
-  const { data: existingBusiness } = await supabase
-    .from("businesses")
-    .select("id")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  let businessId: string | undefined = existingBusiness?.id;
-
-  if (!businessId) {
-    const { data: newBusiness, error } = await supabase
-      .from("businesses")
-      .insert({ user_id: userId, name: user.businessName })
-      .select("id")
-      .single();
-
-    if (error || !newBusiness) {
-      throw new Error(`Could not create a business for ${user.email}: ${error?.message}`);
-    }
-    businessId = newBusiness.id;
-  }
-
-  // Re-check explicitly (rather than trusting the reassignment above) so
-  // TypeScript can confirm businessId is definitely a string by this
-  // point, not "string | undefined".
-  if (!businessId) {
-    throw new Error(`Could not resolve a business id for ${user.email}`);
-  }
-
-  return { supabase, userId, businessId };
-}
 
 /**
  * Makes sure User A's business has one known category, item, and receipt
