@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vivva Admin
 
-## Getting Started
+A back-office web app for small vintage/resale sellers to track inventory, sales, and margins, and to export accountant-ready sales reports — replacing the spreadsheet most sellers start with. Each signed-up user gets their own isolated "business": their own inventory, categories, receipts, and reports, invisible to every other user.
 
-First, run the development server:
+**Live app:** https://vivva-vintage-admin.vercel.app
+
+## Tech stack
+
+- [Next.js](https://nextjs.org) (App Router) + [TypeScript](https://www.typescriptlang.org)
+- [Supabase](https://supabase.com) — Postgres database, authentication, and Row Level Security (no separate backend/API — all data access goes through Supabase directly or through Next.js Server Actions)
+- [Zod](https://zod.dev) — input validation
+- [Vitest](https://vitest.dev) — automated tests, including real integration tests against a live Supabase project
+- Deployed on [Vercel](https://vercel.com)
+
+## Running it locally
+
+**1. Install dependencies**
+
+```bash
+npm install
+```
+
+**2. Set up environment variables**
+
+Create a file called `.env.local` in the project root with:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+Both values come from your Supabase project's dashboard, under **Project Settings → API**:
+- `NEXT_PUBLIC_SUPABASE_URL` is the **Project URL**
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` is the **anon / public** key (not the `service_role` key — that one must never be used in this project, since it bypasses Row Level Security)
+
+These are safe to expose to the browser (that's what the `NEXT_PUBLIC_` prefix means) — access to real data is controlled by Supabase's Row Level Security policies on the database itself, not by keeping this key secret.
+
+**3. Start the dev server**
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app runs at [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Running the tests
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm test
+```
 
-## Learn More
+This runs the full Vitest suite once. Some tests (RLS, database constraints, mark-sold atomicity, report totals) run against the real Supabase project referenced by your `.env.local`, not mocks — so a working `.env.local` is required for the full suite to pass. Use `npm run test:watch` to re-run tests automatically as you edit files.
 
-To learn more about Next.js, take a look at the following resources:
+## Other scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run build   # production build
+npm run start   # run a production build locally
+npm run lint    # ESLint
+```
