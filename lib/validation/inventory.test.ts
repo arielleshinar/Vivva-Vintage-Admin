@@ -58,6 +58,14 @@ describe("itemSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  it("accepts a very large price/cost instead of rejecting it as out of range", () => {
+    const result = itemSchema.safeParse({ ...validItem, cost: "1000000", price: "9999999.99" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.price).toBe(9999999.99);
+    }
+  });
+
   it("turns an empty categoryId into null (no category), not an empty string", () => {
     const result = itemSchema.safeParse({ ...validItem, categoryId: "" });
     expect(result.success).toBe(true);

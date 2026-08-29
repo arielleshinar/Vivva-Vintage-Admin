@@ -13,6 +13,13 @@ describe("calculateMargin", () => {
   it("returns zero when price equals cost", () => {
     expect(calculateMargin(20, 20)).toBe(0);
   });
+
+  it("handles a very large price/cost without overflowing or losing precision", () => {
+    // Nothing realistic for a vintage shop, but the math itself shouldn't
+    // break just because a number is big — e.g. from a typo like adding an
+    // extra zero.
+    expect(calculateMargin(9_999_999.99, 1_000_000)).toBeCloseTo(8_999_999.99, 2);
+  });
 });
 
 describe("formatPercent", () => {
@@ -76,6 +83,16 @@ describe("computeDashboardStats", () => {
     );
 
     expect(stats.avgMarginPercent).toBeNull();
+  });
+
+  it("computes correct margin % for a very large sale price", () => {
+    const stats = computeDashboardStats(
+      [{ categoryId: null, cost: 1_000_000, status: "sold", salePrice: 9_999_999.99 }],
+      []
+    );
+
+    // (9,999,999.99 - 1,000,000) / 9,999,999.99 * 100
+    expect(stats.avgMarginPercent).toBeCloseTo(90.0, 1);
   });
 
   it("groups items into their category, and an 'Uncategorized' bucket for the rest", () => {

@@ -57,3 +57,90 @@ describe("Database constraints: no orphaned records", () => {
     expect(error?.code).toBe("23503");
   });
 });
+
+// Deleting a category with items attached is neither blocked nor cascaded —
+// app/actions/inventory.ts relies on the categories→items foreign key being
+// set up as `on delete set null`, so the items survive with category_id
+// cleared instead of being deleted or the delete being rejected. This proves
+// that's really how the schema (not just the app code) behaves.
+describe("Database constraints: deleting a category clears it from that category's items", () => {
+  let businessId: string;
+  let supabase: Awaited<ReturnType<typeof getOrCreateTestUser>>["supabase"];
+
+  beforeAll(async () => {
+    const account = await getOrCreateTestUser(USER);
+    supabase = account.supabase;
+    businessId = account.businessId;
+  }, 30000);
+
+  it("sets category_id to null on an item instead of blocking the delete or deleting the item", async () => {
+    const { data: category, error: categoryError } = await supabase
+      .from("categories")
+      .insert({ business_id: businessId, name: `DB-CONSTRAINT-TEST-CATEGORY-${Date.now()}` })
+      .select("id")
+      .single();
+    if (categoryError || !category) throw new Error(`Could not seed category: ${categoryError?.message}`);
+
+    const { data: item, error: itemError } = await supabase
+      .from("items")
+      .insert({
+        business_id: businessId,
+        category_id: category.id,
+        name: "DB Constraint Test Item",
+        cost: 5,
+        price: 10,
+        status: "in_stock",
+      })
+      .select("id")
+      .single();
+    if (itemError || !item) throw new Error(`Could not seed item: ${itemError?.message}`);
+
+    const { error: deleteError } = await supabase.from("categories").delete().eq("id", category.id);
+    expect(deleteError).toBeNull();
+
+    const { data: reloadedItem, error: reloadError } = await supabase
+      .from("items")
+      .select("id, category_id")
+      .eq("id", item.id)
+      .single();
+
+    expect(reloadError).toBeNull();
+    expect(reloadedItem).not.toBeNull();
+    expect(reloadedItem?.category_id).toBeNull();
+  });
+});
+
+// Nothing about a vintage shop needs six- or seven-figure prices, but the
+// column types shouldn't silently truncate or reject a value just because
+// it's unusually large — e.g. from someone fat-fingering an extra zero.
+describe("Database constraints: very large cost/price values round-trip correctly", () => {
+  let businessId: string;
+  let supabase: Awaited<ReturnType<typeof getOrCreateTestUser>>["supabase"];
+
+  beforeAll(async () => {
+    const account = await getOrCreateTestUser(USER);
+    supabase = account.supabase;
+    businessId = account.businessId;
+  }, 30000);
+
+  it("stores and returns a very large cost/price without truncation or overflow", async () => {
+    const cost = 1_000_000;
+    const price = 9_999_999.99;
+
+    const { data: item, error: insertError } = await supabase
+      .from("items")
+      .insert({
+        business_id: businessId,
+        name: "DB Constraint Test — Large Value Item",
+        cost,
+        price,
+        status: "in_stock",
+      })
+      .select("id, cost, price")
+      .single();
+
+    expect(insertError).toBeNull();
+    expect(item?.cost).toBe(cost);
+    expect(item?.price).toBe(price);
+  });
+});
