@@ -6,7 +6,10 @@ import { CategoryManager } from "@/components/inventory/category-manager";
 import { AddItemForm } from "@/components/inventory/add-item-form";
 import { ItemsTable } from "@/components/inventory/items-table";
 import { EmptyState } from "@/components/inventory/empty-state";
+import { Pagination } from "@/components/ui/pagination";
 import type { ItemRowItem } from "@/components/inventory/item-row";
+
+const PAGE_SIZE = 25;
 
 /**
  * The /inventory page. Same overall shape as the dashboard page: confirm
@@ -14,7 +17,12 @@ import type { ItemRowItem } from "@/components/inventory/item-row";
  * is this page needs both categories and items, and has to join them
  * together itself (so each item's row can show its category's name).
  */
-export default async function InventoryPage() {
+export default async function InventoryPage(props: PageProps<"/inventory">) {
+  const searchParams = await props.searchParams;
+  // ?page=2 → page 2. Anything missing, non-numeric, or below 1 just
+  // falls back to page 1, rather than erroring on a hand-edited URL.
+  const page = Math.max(1, Number(searchParams.page) || 1);
+
   const supabase = await createClient();
 
   const {
@@ -40,9 +48,12 @@ export default async function InventoryPage() {
     );
   }
 
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
   const [
     { data: categories, error: categoriesError },
-    { data: items, error: itemsError },
+    { data: items, error: itemsError, count: itemCount },
   ] = await Promise.all([
     supabase
       .from("categories")
@@ -51,9 +62,10 @@ export default async function InventoryPage() {
       .order("name"),
     supabase
       .from("items")
-      .select("id, name, cost, price, status, category_id")
+      .select("id, name, cost, price, status, category_id", { count: "exact" })
       .eq("business_id", business.id)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .range(from, to),
   ]);
 
   if (categoriesError || itemsError) {
@@ -89,15 +101,24 @@ export default async function InventoryPage() {
       : null,
   }));
 
+  // Use the total count, not this page's row count — otherwise paging past
+  // the last real page (e.g. a hand-edited URL) would wrongly show the
+  // "no inventory yet" empty state for a business that actually has items.
+  const totalItems = itemCount ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+
   return (
     <PageShell businessName={business.name}>
       <div className="mt-6 flex flex-col gap-6">
         <CategoryManager categories={categoryList} />
         <AddItemForm categories={categoryList} />
-        {itemList.length === 0 ? (
+        {totalItems === 0 ? (
           <EmptyState />
         ) : (
-          <ItemsTable items={itemList} categories={categoryList} />
+          <div>
+            <ItemsTable items={itemList} categories={categoryList} />
+            <Pagination basePath="/inventory" page={page} totalPages={totalPages} />
+          </div>
         )}
       </div>
     </PageShell>
