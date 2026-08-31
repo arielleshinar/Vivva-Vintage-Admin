@@ -65,7 +65,7 @@ export default async function DashboardPage() {
 
   if (categoriesError || itemsError || receiptsError) {
     return (
-      <PageShell businessName={business.name}>
+      <PageShell>
         <p className="mt-8 text-sm text-red-600 dark:text-red-400">
           Something went wrong loading your dashboard. Please try again.
         </p>
@@ -92,7 +92,7 @@ export default async function DashboardPage() {
   );
 
   return (
-    <PageShell businessName={business.name}>
+    <PageShell>
       {stats.totalItems === 0 ? (
         <EmptyState />
       ) : (
@@ -111,28 +111,18 @@ export default async function DashboardPage() {
 }
 
 /**
- * Shared page wrapper: the "Dashboard" heading, the business name
- * underneath it, and consistent padding/background — so every possible
- * state above (loading, error, empty, real data) looks like the same page.
+ * Shared page wrapper: the "Dashboard" heading and consistent
+ * padding/background — so every possible state above (loading, error,
+ * empty, real data) looks like the same page. The business name itself
+ * now lives in the shared Nav (app/(protected)/layout.tsx), not here.
  */
-function PageShell({
-  businessName,
-  children,
-}: {
-  businessName?: string;
-  children: ReactNode;
-}) {
+function PageShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex-1 bg-zinc-50 px-4 py-12 dark:bg-black">
       <div className="mx-auto w-full max-w-4xl">
         <h1 className="text-2xl font-semibold text-zinc-950 dark:text-zinc-50">
           Dashboard
         </h1>
-        {businessName && (
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            {businessName}
-          </p>
-        )}
         {children}
       </div>
     </div>

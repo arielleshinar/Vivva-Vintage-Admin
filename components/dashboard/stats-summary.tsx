@@ -20,7 +20,7 @@ export function StatsSummary({
   avgMarginPercent,
 }: StatsSummaryProps) {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
       <StatCard label="Sell-through rate" value={formatPercent(sellThroughRate)} />
       <StatCard label="Avg. margin" value={formatPercent(avgMarginPercent)} />
       <StatCard label="Items in stock" value={String(totalItems - soldItems)} />

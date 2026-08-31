@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentBusiness } from "@/lib/supabase/get-business";
 import { formatReceiptDate } from "@/lib/receipts/format";
+import { formatMoney } from "@/lib/format";
 import { PrintButton } from "@/components/receipts/print-button";
 
 /**
@@ -92,7 +93,7 @@ export default async function ReceiptDetailPage(
 
           <dl className="flex flex-col gap-3 text-sm">
             <Row label="Item" value={item?.name ?? "—"} />
-            <Row label="Sale price" value={`$${receipt.sale_price.toFixed(2)}`} />
+            <Row label="Sale price" value={formatMoney(receipt.sale_price)} />
             <Row label="Date" value={formatReceiptDate(receipt.created_at)} />
           </dl>
 

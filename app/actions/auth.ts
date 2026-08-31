@@ -122,3 +122,16 @@ export async function login(
 
   redirect("/dashboard");
 }
+
+/**
+ * Logs the current user out and sends them to the login page. Bound
+ * directly to a <form action={signOut}> in the nav — there's no form data
+ * to validate and nothing that can meaningfully fail here from the user's
+ * point of view, so this doesn't need the { error } state shape the other
+ * two actions use.
+ */
+export async function signOut() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/login");
+}

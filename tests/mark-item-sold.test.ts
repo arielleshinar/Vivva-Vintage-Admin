@@ -48,6 +48,10 @@ describe("mark_item_sold: atomicity", () => {
   }, 30000);
 
   it("marking an item sold updates its status and creates exactly one receipt", async () => {
+    // Several real network round-trips against a live database shared with
+    // other test files running in parallel (RLS/db-constraints tests use
+    // the same account) — Vitest's 5000ms default has been observed to be
+    // too tight under that contention, hence the explicit timeout below.
     const itemId = await createFreshInStockItem(supabase, businessId, "single");
 
     const { error: rpcError } = await supabase.rpc("mark_item_sold", {
@@ -68,7 +72,7 @@ describe("mark_item_sold: atomicity", () => {
       .select("id")
       .eq("item_id", itemId);
     expect(receipts).toHaveLength(1);
-  });
+  }, 15000);
 
   it("marking the same item sold twice at the same instant still creates exactly one receipt", async () => {
     const itemId = await createFreshInStockItem(supabase, businessId, "double-submit");
@@ -100,5 +104,5 @@ describe("mark_item_sold: atomicity", () => {
       .select("id")
       .eq("item_id", itemId);
     expect(receipts).toHaveLength(1);
-  });
+  }, 15000);
 });

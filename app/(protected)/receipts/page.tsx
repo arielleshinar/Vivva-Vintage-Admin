@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentBusiness } from "@/lib/supabase/get-business";
 import { formatReceiptDate } from "@/lib/receipts/format";
+import { formatMoney } from "@/lib/format";
 import { EmptyState } from "@/components/receipts/empty-state";
 import { Pagination } from "@/components/ui/pagination";
 
@@ -61,7 +62,7 @@ export default async function ReceiptsPage(props: PageProps<"/receipts">) {
 
   if (receiptsError) {
     return (
-      <PageShell businessName={business.name}>
+      <PageShell>
         <p className="mt-8 text-sm text-red-600 dark:text-red-400">
           Something went wrong loading your receipts. Please try again.
         </p>
@@ -95,7 +96,7 @@ export default async function ReceiptsPage(props: PageProps<"/receipts">) {
   const totalPages = Math.max(1, Math.ceil(totalReceipts / PAGE_SIZE));
 
   return (
-    <PageShell businessName={business.name}>
+    <PageShell>
       {totalReceipts === 0 ? (
         <EmptyState />
       ) : (
@@ -126,7 +127,7 @@ export default async function ReceiptsPage(props: PageProps<"/receipts">) {
                       {itemNamesById.get(receipt.item_id) ?? "—"}
                     </span>
                     <span className="text-zinc-600 dark:text-zinc-400">
-                      ${receipt.sale_price.toFixed(2)}
+                      {formatMoney(receipt.sale_price)}
                     </span>
                     <span className="text-zinc-600 dark:text-zinc-400">
                       {formatReceiptDate(receipt.created_at)}
@@ -144,24 +145,13 @@ export default async function ReceiptsPage(props: PageProps<"/receipts">) {
 }
 
 /** Shared page wrapper — same idea as the other pages' PageShell, labeled "Receipts". */
-function PageShell({
-  businessName,
-  children,
-}: {
-  businessName?: string;
-  children: ReactNode;
-}) {
+function PageShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex-1 bg-zinc-50 px-4 py-12 dark:bg-black">
       <div className="mx-auto w-full max-w-4xl">
         <h1 className="text-2xl font-semibold text-zinc-950 dark:text-zinc-50">
           Receipts
         </h1>
-        {businessName && (
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            {businessName}
-          </p>
-        )}
         {children}
       </div>
     </div>

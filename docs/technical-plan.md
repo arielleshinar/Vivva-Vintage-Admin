@@ -37,7 +37,7 @@ RLS policy pattern applied to every table: `business_id IN (SELECT id FROM busin
 
 All data mutations go through Server Actions (no separate REST API). Actual functions, by file:
 
-- `app/actions/auth.ts` — `signup`, `login`
+- `app/actions/auth.ts` — `signup`, `login`, `signOut`
 - `app/actions/inventory.ts` — `createCategory`, `deleteCategory`, `createItem`, `updateItem`, `deleteItem`, `markItemSold`
 - `app/actions/reports.ts` — `exportReport`
 
@@ -66,14 +66,18 @@ No PDF library and no charting library were added — see the note in the produc
 
 ```
 app/
-  login/, signup/           — auth pages
-  dashboard/                — stats page
-  inventory/                — item list, add/edit/mark-sold UI
-  receipts/, receipts/[id]/ — receipt list + single printable receipt
-  reports/                  — CSV export page
+  login/, signup/            — auth pages (outside the (protected) group — no nav shown)
+  (protected)/               — a route group: the parentheses aren't part of the URL, so
+                               (protected)/dashboard still serves at /dashboard
+    layout.tsx               — renders the shared Nav above every page in this group
+    dashboard/                — stats page
+    inventory/                — item list, add/edit/mark-sold UI
+    receipts/, receipts/[id]/ — receipt list + single printable receipt
+    reports/                  — CSV export page
   actions/                  — Server Actions: auth.ts, inventory.ts, reports.ts
 components/
-  ui/          — shared building blocks: Button, FormField, SelectField, Pagination
+  ui/          — shared building blocks: Button, FormField, SelectField, Pagination,
+                 Nav + NavLinks (the persistent top bar and its active-link highlighting)
   dashboard/   — StatsSummary, CategoryBreakdown, EmptyState
   inventory/   — AddItemForm, CategoryManager, ItemsTable, ItemRow, EmptyState
   receipts/    — PrintButton, EmptyState
@@ -86,6 +90,9 @@ lib/
   reports/     — query.ts (the testable date-range query), csv.ts (CSV building) + tests
   validation/  — auth.ts, inventory.ts, reports.ts (Zod schemas) + tests
   receipts/    — format.ts (date formatting)
+  format.ts    — formatMoney(): shared currency formatting (thousands separators) used
+                 by both inventory and receipts, so a value never renders two different
+                 ways in two different places
   types/       — database.ts (hand-written row types)
 tests/
   rls.test.ts, db-constraints.test.ts, mark-item-sold.test.ts — real integration tests
@@ -93,6 +100,8 @@ tests/
 proxy.ts        — route protection (redirects unauthenticated requests to /login);
                   named proxy.ts, not middleware.ts, per this project's Next.js version
 ```
+
+The nav itself (`components/ui/nav.tsx`) fetches the current business and renders a logout form (`signOut`) alongside links to all four protected pages; `components/ui/nav-links.tsx` is a small Client Component split out just to read the current URL (`usePathname`) and bold the active link — everything else about the nav is a plain Server Component. It's hidden with `print:hidden` so it never shows up on a printed receipt.
 
 ## 10. Core CREATE / READ / UPDATE / DELETE Operations
 

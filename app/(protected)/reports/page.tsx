@@ -38,7 +38,7 @@ export default async function ReportsPage() {
   }
 
   return (
-    <PageShell businessName={business.name}>
+    <PageShell>
       <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
         Select a date range to export a CSV of sold items for your
         accountant.
@@ -51,24 +51,13 @@ export default async function ReportsPage() {
 }
 
 /** Shared page wrapper — same idea as the other pages' PageShell, labeled "Reports". */
-function PageShell({
-  businessName,
-  children,
-}: {
-  businessName?: string;
-  children: ReactNode;
-}) {
+function PageShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex-1 bg-zinc-50 px-4 py-12 dark:bg-black">
       <div className="mx-auto w-full max-w-4xl">
         <h1 className="text-2xl font-semibold text-zinc-950 dark:text-zinc-50">
           Reports
         </h1>
-        {businessName && (
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            {businessName}
-          </p>
-        )}
         {children}
       </div>
     </div>

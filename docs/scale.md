@@ -39,7 +39,6 @@ Data fetching and mutations happen entirely server-side — Server Components fe
 
 - No caching layer beyond Next.js's own request-level behavior — dashboard stats are computed live on every load, not pre-aggregated.
 - No background jobs — the report export is synchronous, which is fine at the data volumes a single small business generates, but wouldn't scale to a business with tens of thousands of sold items in one query.
-- Numbers aren't formatted with thousands separators in the UI (`$9999999.99` rather than `$9,999,999.99`) — cosmetic, not a scale problem, but worth listing here since it was found while stress-testing large values.
 
 ## Future improvements for larger scale
 

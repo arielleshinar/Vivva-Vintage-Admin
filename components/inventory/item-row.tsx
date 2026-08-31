@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { SelectField } from "@/components/ui/select-field";
+import { formatMoney } from "@/lib/format";
 import type { ItemStatus } from "@/lib/types/database";
 
 const initialState: InventoryActionState = {};
@@ -94,10 +95,10 @@ function ViewItemRow({
         {item.categoryName ?? "—"}
       </td>
       <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-        ${item.cost.toFixed(2)}
+        {formatMoney(item.cost)}
       </td>
       <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-        ${item.price.toFixed(2)}
+        {formatMoney(item.price)}
       </td>
       <td className="px-4 py-3">
         <span
@@ -107,7 +108,8 @@ function ViewItemRow({
               : "text-zinc-600 dark:text-zinc-400"
           }
         >
-          {isLoss ? "Loss " : ""}${margin.toFixed(2)}
+          {isLoss ? "Loss " : ""}
+          {formatMoney(Math.abs(margin))}
         </span>
       </td>
       <td className="px-4 py-3">
