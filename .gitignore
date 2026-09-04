@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# presentation materials — submitted separately, not part of the repo
+/docs/presentation/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
